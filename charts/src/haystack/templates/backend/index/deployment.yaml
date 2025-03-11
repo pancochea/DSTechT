@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "haystack.backend.index.fullname" . }}
+  labels:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.index.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "haystack.backend.indexLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.backend.index.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "haystack.backend.indexLabels" . | nindent 8 }}
+        {{- with .Values.backend.index.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.backend.index.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.index.serviceAccount.create -}}
+      serviceAccountName: {{ include "haystack.backend.index.fullname" . }}
+      {{- end }}
+      {{- with .Values.backend.index.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: hayhooks
+          image: "{{ .Values.backend.index.image.repository }}:{{ .Values.backend.index.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.index.image.pullPolicy }}
+          {{- with .Values.backend.index.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.index.service.port }}
+              protocol: TCP
+          {{- with .Values.backend.index.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.index.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.index.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: OPENSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: opensearch-user
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: opensearch-password
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: openai-api-key
+          envFrom:
+            - configMapRef:
+                name: {{ include "haystack.backend.config.fullname" . }}
+          volumeMounts:
+            {{- if .Values.backend.index.persistence.enabled }}
+            - name: {{ include "haystack.backend.index.fullname" . }}
+              mountPath: {{ .Values.backend.index.storage.mountPath }}
+            {{- end }}
+      volumes:
+        {{- if .Values.backend.index.persistence.enabled }}
+        - name: {{ include "haystack.backend.index.fullname" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "haystack.backend.index.fullname" . }}
+        {{- end }}
+      {{- with .Values.backend.index.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.index.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.index.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

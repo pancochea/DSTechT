@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "haystack.backend.query.fullname" . }}
+  labels:
+    {{- include "haystack.backend.queryLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.query.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "haystack.backend.queryLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.backend.query.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "haystack.backend.queryLabels" . | nindent 8 }}
+        {{- with .Values.backend.query.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.backend.query.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.query.serviceAccount.create -}}
+      serviceAccountName: {{ include "haystack.backend.query.fullname" . }}
+      {{- end }}
+      {{- with .Values.backend.query.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: sysctl
+          image: busybox:latest 
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command: ['sh', '-c', 'sysctl -w fs.inotify.max_user_watches=2099999999']
+      containers:
+        - name: haystack
+          image: "{{ .Values.backend.query.image.repository }}:{{ .Values.backend.query.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.query.image.pullPolicy }}
+          {{- with .Values.backend.query.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.query.service.port }}
+              protocol: TCP
+          {{- with .Values.backend.query.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.query.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.backend.query.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: OPENSEARCH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: opensearch-user
+            - name: OPENSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: opensearch-password
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.global.secrets.useExternalSecrets }}{{ .Values.global.secrets.name }}{{ else }}{{ include "haystack.backend.secrets.fullname" . }}{{ end }}
+                  key: openai-api-key
+          envFrom:
+            - configMapRef:
+                name: {{ include "haystack.backend.config.fullname" . }}
+      {{- with .Values.backend.query.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.query.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.query.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

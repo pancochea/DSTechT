@@ -1,0 +1,163 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  secrets:
+    useExternalSecrets: false  
+    name: "hra-secrets"
+    opensearch:
+      adminUser: "admin"
+      adminPassword: "0NEXOJX5zzXRmNJ" 
+    openai:
+      apiKey: "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"
+
+opensearch:
+  extraEnvs:
+    - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      value: "0NEXOJX5zzXRmNJ"
+  serviceMonitor:
+    enabled: true
+  replicas: 1
+  # Problem with max_map_count memory: https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-virtual-memory.html#k8s-virtual-memory
+  extraInitContainers:
+    - name: sysctl
+      image: busybox:latest 
+      securityContext:
+        privileged: true
+        runAsUser: 0
+      command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+
+backend:
+  opensearchHost: opensearch-master.default.svc.cluster.local
+  env:
+    PYTHONUNBUFFERED: "1"
+  config:
+    llm:
+      generator: openai
+      useOpenAIEmbedder: false
+    tokenizers:
+      parallelism: false
+    logging:
+      level: INFO
+      haystackLevel: INFO
+    indexing:
+      onStartup: true
+  query:
+    replicaCount: 1
+    image:
+      repository: deepset/backend-query
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 8002
+    ingress:
+      enabled: true
+      className: nginx
+      annotations: {}
+      tls: []
+      hosts:
+        - host: backend-query.example.com
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    serviceAccount:
+      create: false
+      name: backend-query-sa
+      automount: true
+      annotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    securityContext: {}
+    livenessProbe: {}
+    readinessProbe: {}
+    resources: {}
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    imagePullSecrets: []
+    servicemonitor:
+      enabled: true
+  index:
+    replicaCount: 1
+    image:
+      repository: deepset/backend-indexing
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 8001
+    ingress:
+      enabled: true
+      className: nginx
+      annotations: {}
+      tls: []
+      hosts:
+        - host: backend-query.example.com
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    serviceAccount:
+      create: false
+      name: backend-query-sa
+      automount: true
+      annotations: {}
+    podAnnotations: {}
+    podLabels: {}
+    podSecurityContext: {}
+    securityContext: {}
+    livenessProbe: {}
+    readinessProbe: {}
+    resources: {}
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
+    imagePullSecrets: []
+    servicemonitor:
+      enabled: true
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 10Gi
+      storageClass: null
+    storage:
+      volumeName: "backend-index-storage"
+      mountPath: "/data"
+frontend:
+  replicaCount: 1
+  image:
+    repository: deepset/frontend
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: true
+    className: nginx
+    annotations: {}
+    tls: []
+    hosts:
+      - host: frontend.example.com
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+  serviceAccount:
+    create: false
+    name: backend-query-sa
+    automount: true
+    annotations: {}
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+  securityContext: {}
+  livenessProbe: {}
+  readinessProbe: {}
+  resources: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  imagePullSecrets: []
+  servicemonitor:
+    enabled: true

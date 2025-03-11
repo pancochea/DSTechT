@@ -1,0 +1,15 @@
+{{- if .Values.backend.index.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "haystack.backend.index.fullname" . }}
+  labels:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.backend.index.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.backend.index.persistence.size }}
+  storageClassName: {{ .Values.backend.index.persistence.storageClass }}
+{{- end }}

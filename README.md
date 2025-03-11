@@ -99,13 +99,18 @@ The script is idempotent and can be re-run as needed.
 This script installs all required components for a functional cluster. Re-running it updates the installed charts. Installed components:
 
 - **OpenEBS:** Enables local persistent volume storage.
-- **MetalLB:** Provides external access to the cluster. **IMPORTANT:** You must manually configure your local IP in the MetalLB manifest (`charts/manifests/metallb.yaml`). Failure to do so will cause an error.
+- **MetalLB:** Provides external access to the cluster. **IMPORTANT:** You must manually configure your local IP in the MetalLB manifest (`charts/manifests`). Failure to do so will cause an error.
 - **Ingress Nginx:** Manages Layer 7 requests.
 
 ### 2 - Observability (Optional)
 Installs the observability stack, which includes Grafana, Prometheus, Loki, and Alloy. Datasources are configured during installation.
 
-### 3 - Application Installation
+### 3 - Secrets management
+This script installs Hashicorp vault, initializes it and gets the root keys. This keys are injected into a secrets manifesta that is used later for external-secrets, which is installed next.
+
+There's a problem starting Vault, and external secrets can't use the key to connect to Vault. I was not able to solve the issue on time, so this part is not working.
+
+### 4 - Application Installation
 Installs `haystack-rag-ui`:
 
 1. The Helm chart is linted to check for errors, if linting fails, the process is stoped.
@@ -131,8 +136,6 @@ Point them to the IP configured in MetalLB.
 ## Bonus points
 
 ### Airgapped Installation
-
-Although not required, I decided to create an airgapped installation to prove that this infrastructre can be distributed as package after seeing that the docker used for this applciation was not publicly avaliable, and it took a lot of time to buid. I though of using a local regitry and kept going with the whole installation process.
 
 Airgapped installation requires an ongoing process of resource updates, cleanup, and verification. Also this installations use to be complex, and need to be very stable and secure. All these issues make airgapped environments complex. These environments are usually a result of strict security compliances.
 

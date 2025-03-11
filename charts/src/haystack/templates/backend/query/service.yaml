@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "haystack.backend.query.fullname" . }}
+  labels:
+    {{- include "haystack.backend.queryLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.backend.query.service.type }}
+  ports:
+    - port: {{ .Values.backend.query.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "haystack.backend.queryLabels" . | nindent 4 }}

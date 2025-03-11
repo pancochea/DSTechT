@@ -1,0 +1,17 @@
+{{- if .Values.backend.index.servicemonitor.enabled }}
+{{- if (lookup "monitoring.coreos.com/v1" "CustomResourceDefinition" "" "servicemonitors.monitoring.coreos.com") }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "haystack.backend.index.fullname" . }}
+  labels:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+  endpoints:
+    - port: http
+      interval: 30s
+{{- end }}
+{{- end }}

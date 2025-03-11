@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "haystack.backend.index.fullname" . }}
+  labels:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.backend.index.service.type }}
+  ports:
+    - port: {{ .Values.backend.index.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}

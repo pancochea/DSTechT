@@ -1,0 +1,16 @@
+grafana:
+  adminUser: admin
+  adminPassword: prom-operator
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.deepset.local
+    ingressClassName: nginx
+  persistence:
+    enabled: true
+    type: sts
+    size: 5Gi
+  additionalDataSources:
+    - name: loki
+      url: http://loki-gateway.loki.svc.cluster.local
+      type: loki

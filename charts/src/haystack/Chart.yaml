@@ -1,0 +1,10 @@
+apiVersion: v2
+name: haystack
+description: A Helm chart for Kubernetes to deploy haystack-rag
+type: application
+version: 0.0.1
+dependencies:
+  - name: opensearch
+    version: 2.32.0
+    repository: file://../../opensearch
+    alias: opensearch

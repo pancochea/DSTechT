@@ -1,0 +1,19 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: Cluster
+metadata:
+  name: k0s
+spec:
+  images:
+    default_pull_policy: IfNotPresent
+    konnectivity:
+      image: localhost:5000/k8s-artifacts-prod/kas-network-proxy/proxy-agent
+      version: v0.0.13
+    metricsserver:
+      image: localhost:5000/metrics-server
+      version: v0.7.2
+    kubeproxy:
+      image: localhost:5000/kube-proxy
+      version: v1.32.2
+    coredns:
+      image: localhost:5000/coredns
+      version: 1.12.0

@@ -1,0 +1,65 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  secrets:
+    useExternalSecrets: false  
+    name: "hra-secrets"
+    opensearch:
+      adminUser: "admin"
+      adminPassword: "0NEXOJX5zzXRmNJ" 
+    openai:
+      apiKey: ""
+
+opensearch:
+  extraEnvs:
+    - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+      value: "0NEXOJX5zzXRmNJ"
+  serviceMonitor:
+    enabled: true
+  replicas: 1
+  # Problem with max_map_count memory: https://www.elastic.co/guide/en/cloud-on-k8s/current/k8s-virtual-memory.html#k8s-virtual-memory
+  extraInitContainers:
+    - name: sysctl
+      image: busybox:latest 
+      securityContext:
+        privileged: true
+        runAsUser: 0
+      command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+
+backend:
+  opensearchHost: opensearch-cluster-master.haystack.svc.cluster.local
+  query:
+    image:
+      repository: localhost:5000/deepset/backend-query
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    ingress:
+      hosts:
+        - host: backend-query.deepset.local
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    persistence:
+      storageClass: "openebs-hostpath"
+  index:
+    image:
+      repository: localhost:5000/deepset/backend-indexing
+      tag: "latest"
+    ingress:
+      hosts:
+        - host: backend-index.deepset.local
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    persistence:
+      storageClass: "openebs-hostpath"
+frontend:
+  image:
+    repository: localhost:5000/deepset/frontend
+  ingress:
+    hosts:
+      - host: app.deepset.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific

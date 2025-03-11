@@ -1,0 +1,17 @@
+{{- if and .Values.frontend.ingress.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "haystack.frontend.fullname" . }}
+  labels:
+    {{- include "haystack.frontend.commonLabels" . | nindent 4 }}
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "haystack.frontend.commonLabels" . | nindent 4 }}
+{{- end }}

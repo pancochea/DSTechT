@@ -1,0 +1,18 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: main-pool
+  namespace: metallb
+spec:
+  addresses:
+  - #Add your IP address here
+---
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: main
+  namespace: metallb
+spec:
+  ipAddressPools:
+  - main-pool  

@@ -1,0 +1,43 @@
+{{- if .Values.backend.index.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "haystack.backend.index.fullname" . }}
+  labels:
+    {{- include "haystack.backend.indexLabels" . | nindent 4 }}
+  {{- with .Values.backend.index.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.backend.index.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if .Values.backend.index.ingress.tls }}
+  tls:
+    {{- range .Values.backend.index.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.backend.index.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            {{- with .pathType }}
+            pathType: {{ . }}
+            {{- end }}
+            backend:
+              service:
+                name: {{ include "haystack.backend.index.fullname" $ }}
+                port:
+                  number: {{ $.Values.backend.index.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}
