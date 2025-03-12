@@ -34,19 +34,23 @@ EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 1 ]; then
     echo "Cannot run docker from this user, adding $USER to the docker group"
+    if ! [ getent group "$GROUP_TO_CHECK" &>/dev/null ]; then
+        sudo groupadd docker
+    fi
+
     sudo usermod -aG docker $USER
     newgrp docker
 fi
 
+echo "Installing local registry"
 docker load < $CONTAINERS_PATH/distribution_registry.tar.gz
 docker compose -f $SCRIPTS_PATH/docker-compose-registry.yaml up -d
 
 
 if ! [ -x "$(command -v k0s)" ] && [ "$(detect_arch)" = "amd64" ]; then
     echo "Installing and starting k0s"
-    docker load <  $CONTAINERS_PATH/k0s_bundle.tar.gz
 
-    sudo cp "$BINARIES_PATH/$(ls /opt/deepset/system/bin/ | grep k0s)" "$k0sInstallPath/k0s"
+    sudo cp "$BINARIES_PATH/$(ls $BINARIES_PATH  | grep k0s)" "$k0sInstallPath/k0s"
     sudo chmod 755 "$k0sInstallPath/k0s"
     sudo k0s install controller --single -c $SCRIPTS_PATH/k0s.yaml
     sudo k0s start

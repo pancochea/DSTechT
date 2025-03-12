@@ -7,7 +7,7 @@ source $SCRIPTS_PATH/utils.sh
 cat $MANIFESTS_PATH/metallb.yaml | grep "#ADD" > /dev/null 
 MEATL_LB_CONFIGURED=$?
 
-if ! [ $MEATL_LB_CONFIGURED -eq 0 ]; then
+if [ $MEATL_LB_CONFIGURED -eq 0 ]; then
     echo "[ERROR] Metallb not configured, please add your local ip to $MANIFESTS_PATH/metallb.yaml"
     exit 1
 fi
