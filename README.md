@@ -9,23 +9,23 @@
 
 ### Assumptions and Caveats:
 - The system must be Unix-based.
-- The airgapped installation works only on the amd64 architecture. Due to time constraints, only packages for amd64 were downloaded. If you have a different architecture, you can still perform the installation online.
-- The airgapped installation is partial. Due to the size of the containers, only some are stored in the local registry. A list of these containers is included in the airgapped installation documentation.
+- The air gapped installation works only on the amd64 architecture. Due to time constraints, only packages for amd64 were downloaded. If you have a different architecture, you can still perform the installation online.
+- The air gapped installation is partial. Due to the size of the containers, only some are stored in the local registry. A list of these containers is included in the air gapped installation documentation.
 - The default folder for resources is `/opt/deepset`. To change this, set the `DEEPSET_BASE_PATH` environment variable before running any script.
 - The distribution service listens on port 5000. Ensure this port is available.
 
 ### Known Issues:
 - Uploading a file triggers a long-running process, often resulting in a timeout. The process appears to connect to OpenSearch but then disconnects unexpectedly. Logs indicate that indexing continues in the background.
 
-## Airgapped Installation
+## Air gapped Installation
 
-As explained throughout this document, the approach to installing all components is designed with an airgapped environment in mind. The goal is to build a package containing all required resources, allowing you to transfer the package to the airgapped system and install everything without requiring an internet connection.
+As explained throughout this document, the approach to installing all components is designed with an air gapped environment in mind. The goal is to build a package containing all required resources, allowing you to transfer the package to the air gapped system and install everything without requiring an internet connection.
 
 - **Binaries:** Binaries were downloaded using `apt download` and then installed with `dpkg`. The provided packages are for amd64 architectures, but downloading them for other architectures is straightforward.
 - **Charts:** Helm charts were downloaded using `helm pull $CHART`, after which they can be referenced locally as usual.
 - **Containers:** This is the most labor-intensive part, as you need to retrieve the container registry and version, download the image, re-tag it, and upload it to the local registry. Containers are typically large, causing storage to grow rapidly. In this implementation, only a few containers have been downloaded to demonstrate the process.I created a script to achieve this inthe `scripts` folder.
 
-## Non airgapped Installation
+## Non air gapped Installation
 
 If you want to run the online installation, but still want to use the local registry, run the following commands to start the distribution registry:
 
@@ -35,9 +35,9 @@ docker compose -f scripts/docker-compose-registry.yaml up -d
 
 Then run the online system build script.
 
-## Airgapped Resources Download
+## Air gapped Resources Download
 
-To download all resources for an airgapped installation and avoid rebuilding the `haystack-rag` containers, download the resources file from the link in the mail, and place it in the `resources` folder at the root of this repository (see folder structure section).
+To download all resources for an air gapped installation and avoid rebuilding the `haystack-rag` containers, download the resources file from the link in the mail, and place it in the `resources` folder at the root of this repository (see folder structure section).
 
 ## Haystack-rag-ui Containers
 
@@ -70,7 +70,7 @@ DEEPSET_BASE_PATH
 |- charts
 |   |- manifests -> Extra manifests to apply post-installation. If a file exists with the same name as the installation, it is executed.
 |   |- values -> Configuration values for Helm. If a file exists with the same name as the installation, it is included in the Helm command.
-|   |- charts -> Helm charts to install. These are small and are directly installed as part of the airgapped installation.
+|   |- charts -> Helm charts to install. These are small and are directly installed as part of the air gapped installation.
 |   +- src -> Source code for `haystack-rag`
 |
 +- scripts
@@ -85,13 +85,13 @@ Inside the `installation` folder, you will find all the Bash scripts required to
 Ensure the scripts have execution permissions.
 
 ### 0 - System Setup
-This script installs all necessary tools. If performing an airgapped installation, all binaries must be in the `resources/bin` folder. Installed components:
+This script installs all necessary tools. If performing an air gapped installation, all binaries must be in the `resources/bin` folder. Installed components:
 
-- **Distribution:** A lightweight local Docker registry. The airgapped installation loads the registry data from `resources/registry_data`. The registry listens on port 5000.
+- **Distribution:** A lightweight local Docker registry. The air gapped installation loads the registry data from `resources/registry_data`. The registry listens on port 5000.
 - **Docker:** All required `dpkg` packages and dependencies are stored in `resources/bin`. The `docker` system group is assumed to exist, and the current user is added to it after installation.
 - **kubectl**
 - **Helm**
-- **k0s:** The Kubernetes distribution used to manage containers. The airgapped installation pulls images from the local registry as defined in `k0s.yaml`. 
+- **k0s:** The Kubernetes distribution used to manage containers. The air gapped installation pulls images from the local registry as defined in `k0s.yaml`. 
 
 The script is idempotent and can be re-run as needed.
 
@@ -135,9 +135,9 @@ Point them to the IP configured in MetalLB.
 
 ## Bonus points
 
-### Airgapped Installation
+### air gapped Installation
 
-Airgapped installation requires an ongoing process of resource updates, cleanup, and verification. Also this installations use to be complex, and need to be very stable and secure. All these issues make airgapped environments complex. These environments are usually a result of strict security compliances.
+air gapped installation requires an ongoing process of resource updates, cleanup, and verification. Also this installations use to be complex, and need to be very stable and secure. All these issues make air gapped environments complex. These environments are usually a result of strict security compliances.
 
 ### Observability
 
