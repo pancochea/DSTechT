@@ -41,6 +41,7 @@ if [ $EXIT_CODE -eq 1 ]; then
     fi
 
     sudo usermod -aG docker $USER
+    echo "User added to docker group - Launch again this script"
     newgrp docker
 fi
 
