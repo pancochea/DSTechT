@@ -32,18 +32,17 @@ fi
 docker ps > /dev/null 2>&1
 EXIT_CODE=$?
 
-if [ $EXIT_CODE = 1 ]; then
-    set -e
+if [ $EXIT_CODE -eq 1 ]; then
     echo "Cannot run docker from this user, adding $USER to the docker group"
-    if ! [ getent group "$GROUP_TO_CHECK" &>/dev/null ]; then
+    getent group docker &>/dev/null
+    GROUP_EXIT_CODE=$?
+    if [ $GROUP_EXIT_CODE -eq 2 ]; then
         sudo groupadd docker
     fi
 
     sudo usermod -aG docker $USER
     newgrp docker
-    set +e
 fi
-
 
 if ! [ -x "$(command -v k0s)" ]; then
     echo "Installing k0s"
