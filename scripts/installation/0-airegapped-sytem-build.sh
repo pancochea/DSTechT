@@ -27,6 +27,8 @@ if ! [ -x "$(command -v docker)" ] && [ "$(detect_arch)" = "amd64" ]; then
         exit 1
     fi
     sudo service docker start
+else
+    echo "Docker already installed"
 fi
 
 docker ps > /dev/null 2>&1
@@ -59,16 +61,22 @@ if ! [ -x "$(command -v k0s)" ] && [ "$(detect_arch)" = "amd64" ]; then
 
     mkdir ~/.kube
     sudo k0s kubeconfig admin > ~/.kube/config
+else
+    echo "k0s already installed"
 fi
 
 
 if ! [ -x "$(command -v kubectl)" ] && [ "$(detect_arch)" = "amd64" ]; then
     echo "Installing kubectl"
     sudo install -o root -g root -m 0755 $BINARIES_PATH/kubectl /usr/local/bin/kubectl
+else
+    echo "Kubectl already installed"
 fi
 
 if ! [ -x "$(command -v helm)" ] && [ "$(detect_arch)" = "amd64" ]; then
     echo "Installing helm"
     sudo cp $BINARIES_PATH/helm /usr/local/bin/helm
     sudo chmod 755 /usr/local/bin/helm
+else
+    echo "Helm already isntalled"
 fi

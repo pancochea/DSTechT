@@ -25,20 +25,28 @@ if ! [ -x "$(command -v docker)" ]; then
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update -y
     sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-
+else
+    echo "Docker already Installed"
 fi
 
 docker ps > /dev/null 2>&1
 EXIT_CODE=$?
 
-if [ $EXIT_CODE -eq 1 ]; then
+if [ $EXIT_CODE = 1 ]; then
+    set -e
     echo "Cannot run docker from this user, adding $USER to the docker group"
+    if ! [ getent group "$GROUP_TO_CHECK" &>/dev/null ]; then
+        sudo groupadd docker
+    fi
+
     sudo usermod -aG docker $USER
     newgrp docker
+    set +e
 fi
 
 
 if ! [ -x "$(command -v k0s)" ]; then
+    echo "Installing k0s"
     curl -sSLf https://get.k0s.sh | sudo sh
     sudo k0s install controller --single
     sudo k0s start
@@ -47,14 +55,23 @@ if ! [ -x "$(command -v k0s)" ]; then
     sudo k0s status
     mkdir ~/.kube
     sudo k0s kubeconfig admin > ~/.kube/config
+else
+    echo "k0s already installed"
 fi
 
 
 if ! [ -x "$(command -v kubectl)" ]; then
+    echo "Installing kubectl"
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    rm kubectl
+else
+    echo "Kubectl command already installed"
 fi
 
 if ! [ -x "$(command -v helm)" ]; then
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    echo "Installing helm"
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | basha
+else
+    echo "Helm Alreadu installed"
 fi
