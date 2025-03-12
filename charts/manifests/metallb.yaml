@@ -6,7 +6,7 @@ metadata:
   namespace: metallb
 spec:
   addresses:
-  - 192.168.43.128/32
+  - #ADD Your ip address here
 ---
 apiVersion: metallb.io/v1beta1
 kind: BGPAdvertisement
